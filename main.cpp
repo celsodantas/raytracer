@@ -139,45 +139,23 @@ class Renderer
     {
       for (int col = -windowWidth/2; col < windowWidth/2; ++col)
       {
-        RayHitResult closestHitResult;
-        closestHitResult.hitPosition = Eigen::Vector3d(0,0,0);
-        closestHitResult.hit = false;
-
         ray.direction = Eigen::Vector3d(col, row, -10); // render plane, pixel position
-
         ray.direction.normalize();
         // std::cout << ray.direction << "\n ----" << std::endl;
 
-        for (int i = 0; i < world->sceneObjects.size(); ++i)
+        int rowPos = row + windowHeight/2;
+        int colPost = col + windowWidth/2;
+
+        RayHitResult hitResult = findClosestHit(world->sceneObjects, ray);
+        if (hitResult.hit)
         {
-          Object* sceneObject = world->sceneObjects[i];
-
-          RayHitResult hitResult;
-          hitResult = sceneObject->raytrace(ray);
-
-          if (hitResult.hit)
-          {
-            std::cout << "hit(r:"<<row<< ";col:"<<col<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
-          }
-
-          if (hitResult.hit && hitResult.hitPosition.size() < closestHitResult.hitPosition.size())
-          {
-            closestHitResult = hitResult;
-          }
-        }
-
-        if (closestHitResult.hit)
-        {
-          SDL_SetRenderDrawColor(sdl_renderer, 0, 255, 0, 1);
+          std::cout << "hit(r:"<<rowPos<< ";col:"<<colPost<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
+          SDL_SetRenderDrawColor(sdl_renderer, 225, 255, 255, 1);
         }
         else
         {
           SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 1);
         }
-
-        int rowPos = row + windowHeight/2;
-        int colPost = col + windowWidth/2;
-
 
         // std::cout << rowPos << std::endl;
         SDL_RenderDrawPoint(sdl_renderer, colPost, rowPos);
@@ -186,6 +164,28 @@ class Renderer
 
     SDL_RenderPresent( sdl_renderer );
     std::cout << "done" << std::endl;
+  }
+
+  const RayHitResult findClosestHit(std::vector<Object*> worldObjects, Ray ray)
+  {
+    static RayHitResult closestHitResult;
+    closestHitResult.hitPosition = Eigen::Vector3d(0,0,0);
+    closestHitResult.hit = false;
+
+    for (int i = 0; i < worldObjects.size(); ++i)
+    {
+      Object* sceneObject = world->sceneObjects[i];
+
+      RayHitResult hitResult;
+      hitResult = sceneObject->raytrace(ray);
+
+      if (hitResult.hit && hitResult.hitPosition.size() < closestHitResult.hitPosition.size())
+      {
+        closestHitResult = hitResult;
+      }
+    }
+
+    return closestHitResult;
   }
 };
 

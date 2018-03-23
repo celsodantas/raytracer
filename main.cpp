@@ -35,8 +35,8 @@ class Sphere : public Object
   public:
   Sphere ()
   {
-    radii = 1;
-    position = Eigen::Vector3d(-1, 0, -5);
+    radii = 1; // 1 meter radii
+    position = Eigen::Vector3d(0, 0, -3);
   }
 
   virtual RayHitResult raytrace(Ray ray)
@@ -123,7 +123,7 @@ class Renderer
 
   void render()
   {
-    SDL_SetRenderDrawColor(sdl_renderer, 255, 10, 0, 1);
+    SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 1); // If something is FULL red on the screen, it means that pixel was not rendered
     SDL_RenderClear(sdl_renderer);
     // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0, 0, 0xFF);
     // SDL_RenderDrawPoint(sdl_renderer, 30, 30);
@@ -135,21 +135,21 @@ class Renderer
     Ray ray;
     ray.origin = Eigen::Vector3d(0, 0, 0);
 
-    for (int row = -windowHeight/2; row < windowHeight/2; ++row)
+    double renderPlaneXRatio = ((windowWidth/windowHeight) * 0.1) / windowWidth;
+    double renderPlaneYRatio = 0.1 / windowHeight;
+
+    for (int row = 0; row < windowHeight; ++row)
     {
-      for (int col = -windowWidth/2; col < windowWidth/2; ++col)
+      for (int col = 0; col < windowWidth; ++col)
       {
-        ray.direction = Eigen::Vector3d(col, row, -10); // render plane, pixel position
+        ray.direction = Eigen::Vector3d(col * renderPlaneXRatio, row * renderPlaneYRatio, -0.15); // render plane, pixel position
         ray.direction.normalize();
         // std::cout << ray.direction << "\n ----" << std::endl;
-
-        int rowPos = row + windowHeight/2;
-        int colPost = col + windowWidth/2;
 
         RayHitResult hitResult = findClosestHit(world->sceneObjects, ray);
         if (hitResult.hit)
         {
-          std::cout << "hit(r:"<<rowPos<< ";col:"<<colPost<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
+          // std::cout << "hit(r:"<<row<< ";col:"<<col<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
           SDL_SetRenderDrawColor(sdl_renderer, 225, 255, 255, 1);
         }
         else
@@ -158,7 +158,7 @@ class Renderer
         }
 
         // std::cout << rowPos << std::endl;
-        SDL_RenderDrawPoint(sdl_renderer, colPost, rowPos);
+        SDL_RenderDrawPoint(sdl_renderer, col, row);
       }
     }
 
@@ -166,10 +166,10 @@ class Renderer
     std::cout << "done" << std::endl;
   }
 
-  const RayHitResult findClosestHit(std::vector<Object*> worldObjects, Ray ray)
+  RayHitResult findClosestHit(std::vector<Object*> worldObjects, Ray ray)
   {
-    static RayHitResult closestHitResult;
-    closestHitResult.hitPosition = Eigen::Vector3d(0,0,0);
+    RayHitResult closestHitResult;
+    closestHitResult.hitPosition = Eigen::Vector3d(9999, 9999, 9999);
     closestHitResult.hit = false;
 
     for (int i = 0; i < worldObjects.size(); ++i)
@@ -179,11 +179,14 @@ class Renderer
       RayHitResult hitResult;
       hitResult = sceneObject->raytrace(ray);
 
-      if (hitResult.hit && hitResult.hitPosition.size() < closestHitResult.hitPosition.size())
+      if (hitResult.hit && hitResult.hitPosition.norm() < closestHitResult.hitPosition.norm())
       {
         closestHitResult = hitResult;
       }
     }
+
+    // if (closestHitResult.hit)
+      // std::cout << ".";
 
     return closestHitResult;
   }

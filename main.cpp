@@ -166,23 +166,23 @@ class Renderer
     double screenSpaceXRatio = 1.0 / windowWidth;
     double screenSpaceYRatio = 1.0 / windowHeight;
 
-    for (int row = 0; row < windowHeight; ++row)
+    for (int y = 0; y < windowHeight; ++y)
     {
-      for (int col = 0; col < windowWidth; ++col)
+      for (int x = 0; x < windowWidth; ++x)
       {
-        double screenSpaceX = screenSpaceYRatio * row;
-        double screenSpaceY = screenSpaceXRatio * col;
+        double screenSpaceX = screenSpaceXRatio * x;
+        double screenSpaceY = screenSpaceYRatio * y;
         Ray ray = camera.RayAtScreenSpace(screenSpaceX, screenSpaceY);
         // std::cout << "("<< screenSpaceX << ";" << screenSpaceY << ") \n";
 
-        // ray.direction = Eigen::Vector3d(col * renderPlaneXRatio, row * renderPlaneYRatio, -0.15); // render plane, pixel position
+        // ray.direction = Eigen::Vector3d(x * renderPlaneXRatio, y * renderPlaneYRatio, -0.15); // render plane, pixel position
         // ray.direction.normalize();
         // std::cout << ray.direction << "\n ----" << std::endl;
 
         RayHitResult hitResult = findClosestHit(world->sceneObjects, ray);
         if (hitResult.hit)
         {
-          // std::cout << "hit(r:"<<row<< ";col:"<<col<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
+          // std::cout << "hit(r:"<<y<< ";x:"<<x<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
           SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 1);
         }
         else
@@ -190,8 +190,8 @@ class Renderer
           SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 1);
         }
 
-        // std::cout << rowPos << std::endl;
-        SDL_RenderDrawPoint(sdl_renderer, col, row);
+        // std::cout << yPos << std::endl;
+        SDL_RenderDrawPoint(sdl_renderer, x, y);
       }
     }
 

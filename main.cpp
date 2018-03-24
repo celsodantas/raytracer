@@ -15,16 +15,22 @@ struct Ray
   Eigen::Vector3d direction;
 };
 
+class Object;
+
 struct RayHitResult
 {
   Eigen::Vector3d hitPosition;
   bool hit;
+  Object* hitObject;
 };
 
 class Object
 {
   public:
+  Eigen::Vector3d color;
+
   virtual RayHitResult raytrace(Ray ray) = 0;
+  virtual const Eigen::Vector3d normalAt(const Eigen::Vector3d pos) = 0;
 };
 
 class Sphere : public Object
@@ -33,10 +39,16 @@ class Sphere : public Object
   Eigen::Vector3d position;
 
   public:
-  Sphere ()
+  Sphere (double pRadii, Eigen::Vector3d pPosition, Eigen::Vector3d pColor)
   {
-    radii = 1; // 1 meter radii
-    position = Eigen::Vector3d(0, 0, -3);
+    radii = pRadii; // in meters
+    position = pPosition;
+    color = pColor;
+  }
+
+  virtual const Eigen::Vector3d normalAt(const Eigen::Vector3d pPos)
+  {
+    return pPos - position;
   }
 
   virtual RayHitResult raytrace(Ray ray)
@@ -87,15 +99,27 @@ class Sphere : public Object
   }
 };
 
+struct Light
+{
+  Eigen::Vector3d pos;
+  Eigen::Vector3d color;
+  double intensity = 25;
+};
+
 class World
 {
   public:
   std::vector<Object*> sceneObjects;
+  Light light;
 
   void spawnObject()
   {
-    Sphere* sphere = new Sphere();
-    sceneObjects.push_back(sphere);
+    light.pos = Eigen::Vector3d(0, -2, 0);
+    light.color = Eigen::Vector3d(255, 255, 255);
+
+    sceneObjects.push_back(new Sphere(0.5, Eigen::Vector3d(0.5, 0.8, -3), Eigen::Vector3d(100, 100, 0)));
+    sceneObjects.push_back(new Sphere(0.4, Eigen::Vector3d(1.9, 0.3, -2.8), Eigen::Vector3d(0, 100, 0)));
+    sceneObjects.push_back(new Sphere(0.25, Eigen::Vector3d(0.9, 0.8, -1.8), Eigen::Vector3d(0, 100, 55)));
   }
 };
 
@@ -104,6 +128,7 @@ class Camera
   public:
   Eigen::Vector3d pos;
   Eigen::Vector3d dir;
+  double viewPlaceDist = -0.15;
   double viewPlaneXsize;  // the size of the rendering place, in meters
   double viewPlaneYsize;  // the size of the rendering place, in meters
 
@@ -118,7 +143,7 @@ class Camera
     Ray ray;
 
     ray.origin = Eigen::Vector3d(0, 0, 0); // TODO change this to use the camera position
-    ray.direction = Eigen::Vector3d(x * viewPlaneXsize, y * viewPlaneYsize, -0.15);
+    ray.direction = Eigen::Vector3d(x * viewPlaneXsize, y * viewPlaneYsize, viewPlaceDist);
     ray.direction.normalize();
 
     return ray;
@@ -149,6 +174,7 @@ class Renderer
   {
     SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 1); // If something is FULL red on the screen, it means that pixel was not rendered
     SDL_RenderClear(sdl_renderer);
+    SDL_RenderPresent( sdl_renderer );
 
     int windowWidth = 640;
     int windowHeight = 480;
@@ -166,13 +192,34 @@ class Renderer
         Ray ray = camera.RayAtScreenSpace(screenSpaceX, screenSpaceY);
 
         RayHitResult hitResult = findClosestHit(world->sceneObjects, ray);
+
         if (hitResult.hit)
         {
-          SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 1);
+          // calculating pixel color (SHADER!)
+          Eigen::Vector3d normal = hitResult.hitObject->normalAt(hitResult.hitPosition);
+
+          Eigen::Vector3d lightNormalToHitPos = world->light.pos - hitResult.hitPosition;
+          double distanceFromLight = lightNormalToHitPos.norm();
+          double lightAttenuation = (1/ (1 + 0.1 * distanceFromLight + 0.1 * distanceFromLight * distanceFromLight ));
+
+          lightNormalToHitPos.normalize();
+          double lightAngle = lightNormalToHitPos.dot(normal);
+
+          if (lightAngle > 0)
+          {
+            int r = hitResult.hitObject->color.x() * lightAngle * lightAttenuation * world->light.intensity;
+            int g = hitResult.hitObject->color.y() * lightAngle * lightAttenuation * world->light.intensity;
+            int b = hitResult.hitObject->color.z() * lightAngle * lightAttenuation * world->light.intensity;
+            SDL_SetRenderDrawColor(sdl_renderer, r, g, b, 1);
+          }
+          else
+          {
+            SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 1);
+          }
         }
         else
         {
-          SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 1);
+          SDL_SetRenderDrawColor(sdl_renderer, 50, 50, 50, 1);
         }
 
         SDL_RenderDrawPoint(sdl_renderer, x, y);
@@ -188,6 +235,7 @@ class Renderer
     RayHitResult closestHitResult;
     closestHitResult.hitPosition = Eigen::Vector3d(9999, 9999, 9999);
     closestHitResult.hit = false;
+    closestHitResult.hitObject = nullptr;
 
     for (int i = 0; i < worldObjects.size(); ++i)
     {
@@ -199,6 +247,7 @@ class Renderer
       if (hitResult.hit && hitResult.hitPosition.norm() < closestHitResult.hitPosition.norm())
       {
         closestHitResult = hitResult;
+        closestHitResult.hitObject = sceneObject;
       }
     }
 

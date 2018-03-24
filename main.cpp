@@ -275,9 +275,9 @@ int main(int argc, char* argv[])
   SDL_Init(SDL_INIT_VIDEO);
 
   SDL_Window* window = SDL_CreateWindow(
-      "An SDL2 window",                  // window title
-      SDL_WINDOWPOS_CENTERED,           // initial x position
-      SDL_WINDOWPOS_CENTERED,           // initial y position
+      "Raytracer",
+      SDL_WINDOWPOS_CENTERED,
+      SDL_WINDOWPOS_CENTERED,
       640,                               // width, in pixels
       480,                               // height, in pixels
       SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN

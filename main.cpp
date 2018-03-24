@@ -101,6 +101,32 @@ class World
   }
 };
 
+class Camera
+{
+  public:
+  Eigen::Vector3d pos;
+  Eigen::Vector3d dir;
+  double viewPlaneXsize;  // the size of the rendering place, in meters
+  double viewPlaneYsize;  // the size of the rendering place, in meters
+
+  Camera(double pScreenWidth, double pScreenHeight)
+  {
+    viewPlaneYsize = 0.1;
+    viewPlaneXsize = (pScreenWidth/pScreenHeight) * viewPlaneYsize;
+  }
+
+  Ray RayAtScreenSpace(double x, double y)
+  {
+    Ray ray;
+
+    ray.origin = Eigen::Vector3d(0, 0, 0); // TODO change this to use the camera position
+    ray.direction = Eigen::Vector3d(x * viewPlaneXsize, y * viewPlaneYsize, -0.15);
+    ray.direction.normalize();
+
+    return ray;
+  }
+};
+
 class Renderer
 {
   public:
@@ -131,26 +157,33 @@ class Renderer
 
     int windowWidth = 640;
     int windowHeight = 480;
+    Camera camera(windowWidth, windowHeight);
 
-    Ray ray;
-    ray.origin = Eigen::Vector3d(0, 0, 0);
+    // Ray ray;
+    // ray.origin = Eigen::Vector3d(0, 0, 0);
 
-    double renderPlaneXRatio = ((windowWidth/windowHeight) * 0.1) / windowWidth;
-    double renderPlaneYRatio = 0.1 / windowHeight;
+    // this defines the size of the camera view
+    double screenSpaceXRatio = 1.0 / windowWidth;
+    double screenSpaceYRatio = 1.0 / windowHeight;
 
     for (int row = 0; row < windowHeight; ++row)
     {
       for (int col = 0; col < windowWidth; ++col)
       {
-        ray.direction = Eigen::Vector3d(col * renderPlaneXRatio, row * renderPlaneYRatio, -0.15); // render plane, pixel position
-        ray.direction.normalize();
+        double screenSpaceX = screenSpaceYRatio * row;
+        double screenSpaceY = screenSpaceXRatio * col;
+        Ray ray = camera.RayAtScreenSpace(screenSpaceX, screenSpaceY);
+        // std::cout << "("<< screenSpaceX << ";" << screenSpaceY << ") \n";
+
+        // ray.direction = Eigen::Vector3d(col * renderPlaneXRatio, row * renderPlaneYRatio, -0.15); // render plane, pixel position
+        // ray.direction.normalize();
         // std::cout << ray.direction << "\n ----" << std::endl;
 
         RayHitResult hitResult = findClosestHit(world->sceneObjects, ray);
         if (hitResult.hit)
         {
           // std::cout << "hit(r:"<<row<< ";col:"<<col<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
-          SDL_SetRenderDrawColor(sdl_renderer, 225, 255, 255, 1);
+          SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 1);
         }
         else
         {

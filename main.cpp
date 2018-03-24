@@ -9,6 +9,13 @@
 
 // lldb (print pow correctly): expr -l objective-c -- @import Darwin
 
+class GlobalSettings
+{
+  public:
+  const static int ScreenResolutionX = 640;
+  const static int ScreenResolutionY = 480;
+};
+
 struct Ray
 {
   Eigen::Vector3d origin;
@@ -176,16 +183,14 @@ class Renderer
     SDL_RenderClear(sdl_renderer);
     SDL_RenderPresent( sdl_renderer );
 
-    int windowWidth = 640;
-    int windowHeight = 480;
-    Camera camera(windowWidth, windowHeight);
+    Camera camera(GlobalSettings::ScreenResolutionX, GlobalSettings::ScreenResolutionY);
 
-    double screenSpaceXRatio = 1.0 / windowWidth;
-    double screenSpaceYRatio = 1.0 / windowHeight;
+    double screenSpaceXRatio = 1.0 / GlobalSettings::ScreenResolutionX;
+    double screenSpaceYRatio = 1.0 / GlobalSettings::ScreenResolutionY;
 
-    for (int y = 0; y < windowHeight; ++y)
+    for (int y = 0; y < GlobalSettings::ScreenResolutionY; ++y)
     {
-      for (int x = 0; x < windowWidth; ++x)
+      for (int x = 0; x < GlobalSettings::ScreenResolutionX; ++x)
       {
         double screenSpaceX = screenSpaceXRatio * x;
         double screenSpaceY = screenSpaceYRatio * y;
@@ -278,8 +283,8 @@ int main(int argc, char* argv[])
       "Raytracer",
       SDL_WINDOWPOS_CENTERED,
       SDL_WINDOWPOS_CENTERED,
-      640,                               // width, in pixels
-      480,                               // height, in pixels
+      GlobalSettings::ScreenResolutionX,
+      GlobalSettings::ScreenResolutionY,
       SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN
   );
 

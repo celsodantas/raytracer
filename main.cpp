@@ -57,7 +57,6 @@ class Sphere : public Object
         )
       + pow(radii, 2);
 
-    // std::cout << "sqrt val: " << sqrtValue << std::endl;
 
     RayHitResult hitResult;
 
@@ -73,7 +72,6 @@ class Sphere : public Object
 
       if (t < 0)
       {
-        // it's being the ray
         hitResult.hit = false;
         return hitResult;
       }
@@ -151,18 +149,11 @@ class Renderer
   {
     SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 1); // If something is FULL red on the screen, it means that pixel was not rendered
     SDL_RenderClear(sdl_renderer);
-    // SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0, 0, 0xFF);
-    // SDL_RenderDrawPoint(sdl_renderer, 30, 30);
-    // SDL_RenderPresent( sdl_renderer );
 
     int windowWidth = 640;
     int windowHeight = 480;
     Camera camera(windowWidth, windowHeight);
 
-    // Ray ray;
-    // ray.origin = Eigen::Vector3d(0, 0, 0);
-
-    // this defines the size of the camera view
     double screenSpaceXRatio = 1.0 / windowWidth;
     double screenSpaceYRatio = 1.0 / windowHeight;
 
@@ -173,16 +164,10 @@ class Renderer
         double screenSpaceX = screenSpaceXRatio * x;
         double screenSpaceY = screenSpaceYRatio * y;
         Ray ray = camera.RayAtScreenSpace(screenSpaceX, screenSpaceY);
-        // std::cout << "("<< screenSpaceX << ";" << screenSpaceY << ") \n";
-
-        // ray.direction = Eigen::Vector3d(x * renderPlaneXRatio, y * renderPlaneYRatio, -0.15); // render plane, pixel position
-        // ray.direction.normalize();
-        // std::cout << ray.direction << "\n ----" << std::endl;
 
         RayHitResult hitResult = findClosestHit(world->sceneObjects, ray);
         if (hitResult.hit)
         {
-          // std::cout << "hit(r:"<<y<< ";x:"<<x<<";pos:"<<hitResult.hitPosition.size()<<") " << std::endl;
           SDL_SetRenderDrawColor(sdl_renderer, 255, 255, 255, 1);
         }
         else
@@ -190,7 +175,6 @@ class Renderer
           SDL_SetRenderDrawColor(sdl_renderer, 0, 0, 0, 1);
         }
 
-        // std::cout << yPos << std::endl;
         SDL_RenderDrawPoint(sdl_renderer, x, y);
       }
     }
@@ -217,9 +201,6 @@ class Renderer
         closestHitResult = hitResult;
       }
     }
-
-    // if (closestHitResult.hit)
-      // std::cout << ".";
 
     return closestHitResult;
   }
@@ -250,7 +231,7 @@ int main(int argc, char* argv[])
       SDL_WINDOWPOS_CENTERED,           // initial y position
       640,                               // width, in pixels
       480,                               // height, in pixels
-      SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN                  // flags - see below
+      SDL_WINDOW_MAXIMIZED | SDL_WINDOW_SHOWN
   );
 
   if (window == NULL)

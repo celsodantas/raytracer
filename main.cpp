@@ -110,7 +110,7 @@ struct Light
 {
   Eigen::Vector3d pos;
   Eigen::Vector3d color;
-  double intensity = 25;
+  double intensity = 70;
 };
 
 class World
@@ -124,9 +124,9 @@ class World
     light.pos = Eigen::Vector3d(0, -2, 0);
     light.color = Eigen::Vector3d(255, 255, 255);
 
-    sceneObjects.push_back(new Sphere(0.5, Eigen::Vector3d(0.5, 0.8, -3), Eigen::Vector3d(100, 100, 0)));
-    sceneObjects.push_back(new Sphere(0.4, Eigen::Vector3d(1.9, 0.3, -2.8), Eigen::Vector3d(0, 100, 0)));
-    sceneObjects.push_back(new Sphere(0.25, Eigen::Vector3d(0.9, 0.8, -1.8), Eigen::Vector3d(0, 100, 55)));
+    sceneObjects.push_back(new Sphere(0.5, Eigen::Vector3d(0.5, 0.8, -8), Eigen::Vector3d(100, 100, 0)));
+    sceneObjects.push_back(new Sphere(0.5, Eigen::Vector3d(1.9, 0.3, -9.8), Eigen::Vector3d(0, 100, 0)));
+    sceneObjects.push_back(new Sphere(0.5, Eigen::Vector3d(0.9, 0.8, -7.5), Eigen::Vector3d(0, 100, 55)));
   }
 };
 
@@ -135,7 +135,7 @@ class Camera
   public:
   Eigen::Vector3d pos;
   Eigen::Vector3d dir;
-  double viewPlaceDist = -0.15;
+  double viewPlaceDist = -0.5;
   double viewPlaneXsize;  // the size of the rendering place, in meters
   double viewPlaneYsize;  // the size of the rendering place, in meters
 
@@ -149,7 +149,7 @@ class Camera
   {
     Ray ray;
 
-    ray.origin = Eigen::Vector3d(0, 0, 0); // TODO change this to use the camera position
+    ray.origin = Eigen::Vector3d(0, 0, 0.5); // TODO change this to use the camera position
     ray.direction = Eigen::Vector3d(x * viewPlaneXsize, y * viewPlaneYsize, viewPlaceDist);
     ray.direction.normalize();
 
